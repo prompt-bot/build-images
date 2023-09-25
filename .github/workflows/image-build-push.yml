@@ -1,0 +1,38 @@
+name: ci
+on:
+  workflow_dispatch: #github页面手动触发
+  push:
+    branches: [ "dev", "main" ]
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-push-images:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Get Repository Name
+        run: echo "REPO_NAME=$(basename -s .git $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+
+      - name: Set short SHA
+        run: echo "IMAGE_TAG=$(echo ${{ github.sha }} | cut -c 1-7)" >> $GITHUB_ENV
+
+      - name: Login Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build && Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ vars.REGISTRY }}/${{ vars.REGISTRY_GROUP }}/${{ env.REPO_NAME }}:${{ env.IMAGE_TAG }}
