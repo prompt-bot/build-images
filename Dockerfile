@@ -77,6 +77,7 @@ RUN cd DBoW2 && \
 # Install RobustPGO
 ADD https://api.github.com/repos/MIT-SPARK/Kimera-RPGO/git/refs/heads/master version.json
 RUN git clone https://github.com/MIT-SPARK/Kimera-RPGO.git
+ENV CXXFLAGS="-std=c++17"
 RUN cd Kimera-RPGO && \
       mkdir build && \
       cd build && \
